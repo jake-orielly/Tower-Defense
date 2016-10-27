@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border: 1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()">
+<script>
+    var towers = [];
+    var enemies = [];
+    var path;
+    var boardX = 720;
+    var boardY = 720;
+    var shot = [];
+    var bullets = [];
+    var frame;
+    var bulletSpeed = 3;
+    
+    function startGame() {
+        frame = 0;
+        towers[0] = new component(30,30,"#FFC300",260,100,"tower");
+        for (var i = 0; i < 10; i++) {
+            enemies[i] = new component(30,30,"blue",boardX/2-15,0-i*80,"minion");
+        }
+        path = new component(70,boardY,"#A0522D",boardX/2-35,0,"path");
+        shot[0] = 0;
+        myGameArea.start();
+    }
+
+    var myGameArea = {
+        canvas : document.createElement("canvas"),
+        start : function() {
+            this.canvas.width = boardX;
+            this.canvas.height = boardY;
+            this.context = this.canvas.getContext("2d");
+            document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+            this.interval = setInterval(updateGameArea, 20);
+            window.addEventListener('keydown', function (e) {
+                myGameArea.keys = (myGameArea.keys || []);
+                myGameArea.keys[e.keyCode] = true;
+            })
+            window.addEventListener('keyup', function (e) {
+                myGameArea.keys[e.keyCode] = false; 
+            })
+        },
+        clear : function() {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+    }
+
+    function component(width, height, color, x, y, name) {
+        this.name = name;
+        this.width = width;
+        this.height = height;
+        this.speedX = 0;
+        if (this.name == "minion")
+            this.speedY = 1;
+        else
+            this.speedY = 0;
+        this.x = x;
+        this.y = y;
+        
+        this.update = function() {
+            ctx = myGameArea.context;
+            if (this.name == "text") {
+              ctx.font = this.width + " " + this.height;
+              ctx.fillStyle = color;
+              ctx.fillText(this.text, this.x, this.y);
+            }
+            else {
+              ctx.fillStyle = color;
+              ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        this.newPos = function() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+        }
+        
+        this.crashWith = function(otherobj) {
+            var myleft = this.x;
+            var myright = this.x + (this.width);
+            var mytop = this.y;
+            var mybottom = this.y + (this.height);
+            var otherleft = otherobj.x;
+            var otherright = otherobj.x + (otherobj.width);
+            var othertop = otherobj.y;
+            var otherbottom = otherobj.y + (otherobj.height);
+            var crash = true;
+            if ((mybottom < othertop) ||
+                   (mytop > otherbottom) ||
+                   (myright < otherleft) ||
+                   (myleft > otherright)) {
+               crash = false;
+            }
+            return crash;
+        }
+    }
+
+    function updateGameArea() {
+        myGameArea.clear();
+        if (myGameArea.keys) {
+            handleInput();
+        }
+        path.update();
+        
+        for (var i = 0; i < towers.length; i++) {
+            towers[i].update();   
+        }
+        
+        for (var i = 0; i < bullets.length; i++) {
+            bullets[i].newPos();
+            bullets[i].update();   
+        }
+        
+        for (var i = 0; i < enemies.length; i++) {
+            enemies[i].newPos();
+            enemies[i].update();   
+        }
+        
+        if (!shot[0]) {
+            shot[0] = 30;
+            shoot(towers[0].x,towers[0].y);
+        }
+        else 
+            shot[0] -= 1;
+        
+        frame++;
+    }
+
+    function shoot(x,y) {
+        bullets[0] = new component(8,8,"red",260,100,"bullet");
+        var target = getTrajectory(x,y,enemies[0].x,enemies[0].y);
+        bullets[0].speedX = bulletSpeed*target[0];
+        bullets[0].speedY = bulletSpeed*target[1];
+    }
+    
+    function getTrajectory(x,y,targetX,targetY) {
+        var resultX = (targetX - x)/Math.abs(targetX - x);
+        var resultY = (targetY - y)/Math.abs(targetY - y);
+        return [resultX,resultY];   
+    }
+    
+    function handleInput() {
+        if (myGameArea.keys[87]) {alert(1);}
+    }
+
+    function stopMoving(given) {
+        given.speedX = 0;
+        given.speedY = 0;
+    }
+</script>
+
+</body>
+</html>
