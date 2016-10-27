@@ -136,14 +136,22 @@ canvas {
 
     function shoot(x,y) {
         bullets[0] = new component(8,8,"red",260,100,"bullet");
-        var target = getTrajectory(x,y,enemies[0].x,enemies[0].y);
+        var target = getTrajectory(x,y,
+        enemies[0].x+enemies[0].width,
+        enemies[0].y+enemies[0].height+enemies[0].speedY*1.5);
         bullets[0].speedX = bulletSpeed*target[0];
         bullets[0].speedY = bulletSpeed*target[1];
     }
     
     function getTrajectory(x,y,targetX,targetY) {
-        var resultX = (targetX - x)/Math.abs(targetX - x);
-        var resultY = (targetY - y)/Math.abs(targetY - y);
+        var larger;
+            if (Math.abs(targetX - x) > Math.abs(targetY-y))
+                larger = Math.abs(targetX - x);
+            else 
+                larger = Math.abs(targetY - y)
+                
+        var resultX = (targetX - x)/larger;
+        var resultY = (targetY - y)/larger;
         return [resultX,resultY];   
     }
     
