@@ -23,7 +23,7 @@ canvas {
     
     function startGame() {
         frame = 0;
-        towers[0] = new component(30,30,"#FFC300",260,100,"tower");
+        towers[0] = new component(30,30,"#FFC300",260,250,"tower");
         for (var i = 0; i < 10; i++) {
             enemies[i] = new component(30,30,"blue",boardX/2-15,0-i*80,"minion");
         }
@@ -115,6 +115,17 @@ canvas {
         }
         
         for (var i = 0; i < bullets.length; i++) {
+            for (var j = 0; j < enemies.length; j++) {
+                if(bullets[i].crashWith(enemies[j])) {
+                    shot[i] = 0;
+                    if (enemies[0].width > 15){
+                        enemies[0].width -= 15;
+                        enemies[0].height -= 15;
+                    }
+                    else 
+                        enemies = removeFirst(enemies);
+                }
+            }
             bullets[i].newPos();
             bullets[i].update();   
         }
@@ -124,8 +135,9 @@ canvas {
             enemies[i].update();   
         }
         
+        
         if (!shot[0]) {
-            shot[0] = 30;
+            shot[0] = 40;
             shoot(towers[0].x,towers[0].y);
         }
         else 
@@ -135,7 +147,7 @@ canvas {
     }
 
     function shoot(x,y) {
-        bullets[0] = new component(8,8,"red",260,100,"bullet");
+        bullets[0] = new component(8,8,"red",towers[0].x,towers[0].y,"bullet");
         var target = getTrajectory(x,y,
         enemies[0].x+enemies[0].width,
         enemies[0].y+enemies[0].height+enemies[0].speedY*1.5);
@@ -153,6 +165,13 @@ canvas {
         var resultX = (targetX - x)/larger;
         var resultY = (targetY - y)/larger;
         return [resultX,resultY];   
+    }
+    
+    function removeFirst(array) {
+        var result = [];
+        for (var i = 1; i < array.length;i++)
+            result[i-1] = array[i];
+        return result;
     }
     
     function handleInput() {
